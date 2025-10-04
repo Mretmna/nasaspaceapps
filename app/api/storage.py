@@ -1,0 +1,2 @@
+lat = None
+lon = None

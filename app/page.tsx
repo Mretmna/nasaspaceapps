@@ -37,10 +37,10 @@ export default function Home() {
     setError('');
 
     try {
-      console.log('Sending to:', `${API_URL}`);
+      console.log('Sending to:', `/api/calculate/`);
       console.log('Coordinates:', coords);
       
-      const res = await fetch(`${API_URL}`, {
+      const res = await fetch(`/api/calculate/`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
