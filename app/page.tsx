@@ -8,7 +8,7 @@ export default function Home() {
   const [error, setError] = useState('');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
+  const API_KEY = process.env.NEXT_PUBLIC_API_KEY ;
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -33,7 +33,7 @@ export default function Home() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-API-Key': API_KEY 
+          ...(API_KEY ? { 'X-API-Key': API_KEY } : {})
         },
         body: JSON.stringify({ 
           lat: coords.lat, 
