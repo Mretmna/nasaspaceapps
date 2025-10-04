@@ -18,7 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL ;
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
   useEffect(() => {
@@ -37,10 +37,10 @@ export default function Home() {
     setError('');
 
     try {
-      console.log('Sending to:', `${API_URL}/api/calculate`);
+      console.log('Sending to:', `${API_URL}`);
       console.log('Coordinates:', coords);
       
-      const res = await fetch(`${API_URL}/api/calculate`, {
+      const res = await fetch(`${API_URL}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
