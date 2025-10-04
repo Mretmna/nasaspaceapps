@@ -1,14 +1,25 @@
 'use client';
 import { useState, useEffect } from 'react';
 
+// Define types for API response
+type ApiResult = {
+  received: {
+    latitude: number;
+    longitude: number;
+  };
+  calculations: {
+    division: number | string;
+  };
+};
+
 export default function Home() {
   const [coords, setCoords] = useState({ lat: 0, lon: 0 });
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ApiResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  const API_KEY = process.env.NEXT_PUBLIC_API_KEY ;
+  const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -27,25 +38,22 @@ export default function Home() {
 
     try {
       console.log('Sending to:', `${API_URL}/api/calculate`);
-      console.log('Coordinates:', { lat: coords.lat, lon: coords.lon });
+      console.log('Coordinates:', coords);
       
       const res = await fetch(`${API_URL}/api/calculate`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          ...(API_KEY ? { 'X-API-Key': API_KEY } : {})
+          ...(API_KEY ? { 'x-api-key': API_KEY } : {})  // lowercase header
         },
-        body: JSON.stringify({ 
-          lat: coords.lat, 
-          lon: coords.lon 
-        })
+        body: JSON.stringify(coords)
       });
 
       if (!res.ok) {
         throw new Error(`Request failed: ${res.status}`);
       }
 
-      const data = await res.json();
+      const data: ApiResult = await res.json();
       setResult(data);
     } catch (err) {
       console.error('Error:', err);
