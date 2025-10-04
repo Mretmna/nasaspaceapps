@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 
 // Define the exact types for the API response expected from the FastAPI backend.
-// This ensures type safety between the Python and TypeScript parts of your application.
 type ApiResult = {
   received: {
     latitude: number;
@@ -19,9 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // NOTE: process.env.NEXT_PUBLIC_API_URL is unused here because we use a relative path (/api/calculate/),
-  // which is the best practice for deployment on Vercel. 
-  const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
+  // NOTE: API_KEY logic has been removed as it's not strictly necessary for internal communication.
 
   /**
    * Get the user's current geographic coordinates when the component mounts.
@@ -60,14 +57,13 @@ export default function Home() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          // Include the API key if it exists in environment variables
-          ...(API_KEY ? { 'x-api-key': API_KEY } : {})
+          // API Key header removed
         },
         body: JSON.stringify(coords)
       });
 
       if (!res.ok) {
-        // Handle HTTP errors, including 401 Unauthorized from the FastAPI check
+        // Handle HTTP errors, e.g., 405 Method Not Allowed, 500 Server Error
         const errorText = await res.text();
         throw new Error(`Request failed: ${res.status} - ${errorText || res.statusText}`);
       }
