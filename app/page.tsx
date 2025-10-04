@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-// Define types for API response
 type ApiResult = {
   received: {
     latitude: number;
