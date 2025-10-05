@@ -109,6 +109,7 @@ export default function Home() {
               <div className="bg-white p-3 rounded">
                 <span className="font-bold">Longitude:</span> {coords.longitude.toFixed(6)}
               </div>
+            
             </div>
           </div>
         )}
@@ -122,10 +123,8 @@ export default function Home() {
         {data && (
           <div className="mt-4 p-4 bg-green-50 rounded-lg text-center">
             <p className="text-sm">
-              Average Latitude: {data.average_latitude?.toFixed(6) ?? "-"} <br />
-              Average Longitude: {data.average_longitude?.toFixed(6) ?? "-"} <br />
-              Total Coordinates: {data.count}
-            </p>
+              Average Latitude: {JSON.stringify(data, null, 2)}
+              </p>
           </div>
         )}
       </div>
