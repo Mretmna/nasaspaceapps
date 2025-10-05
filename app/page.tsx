@@ -107,6 +107,9 @@ export default function Home() {
               <div className="bg-white p-3 rounded">
                 <span className="font-bold">Longitude:</span> {coords.longitude.toFixed(6)}
               </div>
+              <div> 
+              <span className="font-bold">Python Response</span> {data?.result}
+              </div>
             </div>
           </div>
         )}
