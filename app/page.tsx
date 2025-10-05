@@ -35,6 +35,7 @@ export default function Home() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'x-api-key': API_KEY as string,  
             },
             body: JSON.stringify({ latitude, longitude }),
           });
