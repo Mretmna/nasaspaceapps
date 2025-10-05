@@ -157,6 +157,14 @@ export default function Home() {
           />
         </div>
       )}  
+      {data &&
+      <div>
+  
+          <span className="font-mono text-gray-800 text-9xl">
+              {data.aqi_data ? `Current AQI: ${data.aqi_data.aqi} (${data.aqi_data.category})` : "AQI data not available"}
+          </span>
+        
+        </div>}
 
       <div className="relative z-10 p">
         <p className ="text-center text-9xl">deneme</p>
