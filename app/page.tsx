@@ -14,6 +14,10 @@ type CalculationResponse = {
   count: number;
 };
 
+const generateMapLink = (lat: number, lon: number) => {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+};
+
 export default function Home() {
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [message, setMessage] = useState("");
@@ -197,9 +201,29 @@ export default function Home() {
                                 {data.average_longitude !== null ? data.average_longitude.toFixed(6) : "N/A"}
                             </span>
                         </div>
+                        <a 
+                            href={generateMapLink(data.average_latitude!, data.average_longitude!)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="mt-6 block text-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 shadow-md"
+                        >
+                            🌍 View Average Location on Map
+                        </a>
                     </div>
                 </div>
             )}
+            {data  &&  (
+                        <a 
+                            href={generateMapLink(data.average_latitude!, data.average_longitude!)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="mt-6 block text-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 shadow-md"
+                        >
+                            🌍 View Average Location on Map
+                        </a>
+                    )}
+                    {/* --- NEW CODE ADDITION END --- */}
+                    
         </div>
       </div>
     </main>
