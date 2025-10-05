@@ -83,9 +83,8 @@ export default function Home() {
     } else {
       setInitialLoadError("API_URL is not configured.");
     }
-  }, []);
+  
 
-  const getAndSendLocation = () => {
     setLoading(true);
     setMessage("Getting your location...");
     setCoords(null);
@@ -136,8 +135,7 @@ export default function Home() {
         setMessage(`❌ Geolocation Error: ${error.message}`);
         setLoading(false);
       }
-    );
-  };
+    );}, []);
 
   const hasAverages = data && data.average_latitude !== null && data.average_longitude !== null;
   const hasCoords = coords !== null;
@@ -146,7 +144,7 @@ export default function Home() {
   return (
     <main className="relative min-h-screen flex items-center justify-center">
 
-      {hasCoords && (
+      {coords && (
         <div className="absolute inset-0">
           <iframe
             src={generateMapEmbedUrl(coords.latitude, coords.longitude)}
