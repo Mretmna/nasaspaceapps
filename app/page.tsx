@@ -2,15 +2,17 @@
 
 import { useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function Home() {
+  const [coords, setCoords] = useState<{latitude: number; longitude: number} | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const getAndSendLocation = () => {
     setLoading(true);
     setMessage('Getting your location...');
+    setCoords(null);
 
     if (!navigator.geolocation) {
       setMessage('Geolocation is not supported by your browser');
@@ -22,6 +24,11 @@ export default function Home() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         
+        // Display coordinates first
+        setCoords({ latitude, longitude });
+        setMessage('📍 Location received! Sending to server...');
+
+        // Then send to API
         try {
           const response = await fetch(`${API_URL}/items`, {
             method: 'POST',
@@ -34,7 +41,7 @@ export default function Home() {
           if (!response.ok) throw new Error('Failed to send location');
 
           const data = await response.json();
-          setMessage(`✅ Location sent! Lat: ${latitude.toFixed(6)}, Lon: ${longitude.toFixed(6)}`);
+          setMessage('✅ Location sent successfully!');
         } catch (error) {
           setMessage('❌ Failed to send location to server');
         }
@@ -55,10 +62,24 @@ export default function Home() {
         <button
           onClick={getAndSendLocation}
           disabled={loading}
-          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg disabled:opacity-50"
+          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg disabled:opacity-50 mb-4"
         >
-          {loading ? '⏳ Sending...' : '📍 Send My Location'}
+          {loading ? '⏳ Processing...' : '📍 Get & Send Location'}
         </button>
+
+        {coords && (
+          <div className="mb-4 p-6 bg-blue-50 border-2 border-blue-300 rounded-lg">
+            <h2 className="font-bold text-lg mb-2 text-center">Your Coordinates</h2>
+            <div className="space-y-2 font-mono text-sm">
+              <div className="bg-white p-3 rounded">
+                <span className="font-bold">Latitude:</span> {coords.latitude.toFixed(6)}
+              </div>
+              <div className="bg-white p-3 rounded">
+                <span className="font-bold">Longitude:</span> {coords.longitude.toFixed(6)}
+              </div>
+            </div>
+          </div>
+        )}
 
         {message && (
           <div className="mt-4 p-4 bg-gray-100 rounded-lg text-center">
