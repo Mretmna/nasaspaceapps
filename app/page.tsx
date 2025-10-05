@@ -162,7 +162,7 @@ export default function Home() {
       <div>
   
           <span className="font-mono text-gray-800 text-9xl">
-              {data.aqi_data ? `Current AQI: ${data.aqi_data})` : "AQI data not available"}
+              {data.aqi_data}
           </span>
         
         </div>}
