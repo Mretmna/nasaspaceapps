@@ -1,99 +1,104 @@
 'use client';
-import { useState, useEffect } from 'react';
 
-type ApiResult = {
-  received: {
-    latitude: number;
-    longitude: number;
-  };
-  calculations: {
-    division: number | string;
-  };
-};
+import { useState, useEffect } from 'react';
+import { fetchItems, addCurrentLocation, clearItems } from '@/lib/api';
 
 export default function Home() {
-  const [coords, setCoords] = useState({ lat: 0, lon: 0 });
-  const [result, setResult] = useState<ApiResult | null>(null);
+  const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL ;
-  const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        setCoords({ 
-          lat: pos.coords.latitude, 
-          lon: pos.coords.longitude 
-        });
-      });
-    }
-  }, []);
-
-  const sendCoordinates = async () => {
+  const loadItems = async () => {
     setLoading(true);
-    setError('');
-
     try {
-      console.log('Sending to:', `${API_URL}`);
-      console.log('Coordinates:', coords);
-      
-      const res = await fetch(`${API_URL}`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(API_KEY ? { 'x-api-key': API_KEY } : {})  // lowercase header
-        },
-        body: JSON.stringify(coords)
-      });
-
-      if (!res.ok) {
-        throw new Error(`Request failed: ${res.status}`);
-      }
-
-      const data: ApiResult = await res.json();
-      setResult(data);
-    } catch (err) {
-      console.error('Error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to connect to server');
-    } finally {
-      setLoading(false);
+      const data = await fetchItems();
+      setItems(data.items);
+      setMessage(`Loaded ${data.count} locations`);
+    } catch (error) {
+      setMessage('Failed to load locations');
     }
+    setLoading(false);
   };
 
-  return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Coordinate Processor</h1>
+  const handleGetMyLocation = async () => {
+    setLoading(true);
+    setMessage('Getting your location...');
+    try {
+      const result = await addCurrentLocation();
+      setMessage(`Location added! Lat: ${result.item.latitude}, Lon: ${result.item.longitude}`);
+      loadItems();
+    } catch (error: any) {
+      setMessage(error.message || 'Failed to get location');
+    }
+    setLoading(false);
+  };
 
-      <div className="bg-black-100 p-4 rounded mb-6">
-        <p className="font-semibold mb-2">Your Coordinates:</p>
-        <p>Latitude: {coords.lat.toFixed(6)}</p>
-        <p>Longitude: {coords.lon.toFixed(6)}</p>
+  const handleClear = async () => {
+    setLoading(true);
+    try {
+      const result = await clearItems();
+      setMessage(result.message);
+      setItems([]);
+    } catch (error) {
+      setMessage('Failed to clear items');
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  return (
+    <main className="p-8 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">My Locations</h1>
+      
+      {message && (
+        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
+          {message}
+        </div>
+      )}
+
+      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Add Your Current Location</h2>
+        <button
+          onClick={handleGetMyLocation}
+          disabled={loading}
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded text-lg"
+        >
+          📍 Get My Location
+        </button>
+        <p className="text-gray-600 text-sm mt-2">
+          Click to share your current location and save it
+        </p>
       </div>
 
-      <button
-        onClick={sendCoordinates}
-        disabled={loading}
-        className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 disabled:bg-gray-400"
-      >
-        {loading ? 'Processing...' : 'Send to Python'}
-      </button>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
-          {error}
+      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Saved Locations ({items.length})</h2>
+          <button
+            onClick={handleClear}
+            disabled={loading || items.length === 0}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
+          >
+            Clear All
+          </button>
         </div>
-      )}
-
-      {result && (
-        <div className="mt-6">
-          <h2 className="text-xl font-bold mb-3">Results from Python:</h2>
-          <pre className="p-4 bg-black-100 rounded overflow-auto">
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        </div>
-      )}
-    </div>
+        
+        {items.length === 0 ? (
+          <p className="text-gray-500">No locations saved yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {items.map((item, index) => (
+              <div key={index} className="border-l-4 border-green-500 pl-4 py-2 bg-gray-50">
+                <span className="font-mono text-sm">
+                  📍 Lat: {item.latitude.toFixed(6)}, Lon: {item.longitude.toFixed(6)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
