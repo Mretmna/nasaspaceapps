@@ -31,7 +31,7 @@ export default function Home() {
 
         // Then send to API
         try {
-          const response = await fetch(`${API_URL}/items`, {
+          const response = await fetch(`${API_URL}/coords`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
