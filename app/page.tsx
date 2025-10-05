@@ -158,7 +158,7 @@ export default function Home() {
             title="Location Map"
           />
         </div>
-      )}
+      )}  
 
       <div className="relative z-10 p">
         <p className ="text-center text-9xl">deneme</p>
