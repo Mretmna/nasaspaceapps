@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import React from 'react'; // Explicitly import React for JSX
+import React from 'react';
 
 // API constants (will be picked up from your Next.js environment)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -14,9 +14,12 @@ type CalculationResponse = {
   count: number;
 };
 
-const generateMapLink = (lat: number, lon: number) => {
-  return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+// Function to generate the Google Maps Embed URL
+const generateMapEmbedUrl = (lat: number, lon: number) => {
+    // This creates an iframe-compatible URL for the map
+    return `https://maps.google.com/maps?q=${lat},${lon}&t=&z=14&ie=UTF8&iwloc=B&output=embed`;
 };
+
 
 export default function Home() {
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -31,11 +34,22 @@ export default function Home() {
       // Clear previous error message for this fetch
       setInitialLoadError(null); 
       
-      const res = await fetch(`${API_URL}/calculations`, {
+      const url = `${API_URL}/calculations`;
+
+      if (!API_KEY) {
+          const keyError = "API_KEY is not set (NEXT_PUBLIC_API_KEY). Cannot proceed with fetch.";
+          console.error(keyError);
+          setInitialLoadError(keyError);
+          return; // Stop the fetch if key is missing
+      }
+      
+      console.log(`Attempting to fetch calculations from: ${url}`);
+
+      const res = await fetch(url, {
         method: "POST", // must match FastAPI
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": API_KEY ?? "",
+          "x-api-key": API_KEY, // API_KEY is guaranteed to be a string here
         },
         // POST to /calculations doesn't require a body, but sending one can prevent 422 errors if FastAPI expects it
         body: JSON.stringify({}), 
@@ -43,14 +57,16 @@ export default function Home() {
 
       if (!res.ok) {
         const errorDetail = await res.text();
-        throw new Error(`Failed to fetch calculations. Status: ${res.status}. Detail: ${errorDetail.substring(0, 100)}...`);
+        throw new Error(`Failed to fetch calculations. Status: ${res.status}. Check API key and CORS. Detail: ${errorDetail.substring(0, 100)}...`);
       }
       
       const json: CalculationResponse = await res.json();
       setData(json);
     } catch (err) {
       console.error("Error fetching calculations:", err);
-      if (err instanceof Error) {
+      if (err instanceof Error && err.message.includes('Failed to fetch')) {
+        setInitialLoadError(`Connection error: ${err.message}. Check if your FastAPI server is running at ${API_URL}`);
+      } else if (err instanceof Error) {
         setInitialLoadError(err.message);
       } else {
         setInitialLoadError("An unknown error occurred while fetching calculations.");
@@ -124,6 +140,10 @@ export default function Home() {
     );
   };
 
+  // Derive state to check if we have valid averages to display the map link
+  const hasAverages = data && data.average_latitude !== null && data.average_longitude !== null;
+
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
       <div className="bg-white shadow-2xl rounded-xl p-8 max-w-lg w-full transform transition-all duration-300 hover:shadow-3xl">
@@ -144,7 +164,7 @@ export default function Home() {
           <div className="mb-6 p-6 bg-indigo-50 border-2 border-indigo-300 rounded-xl">
             <h2 className="font-bold text-xl mb-3 text-center text-indigo-800">Your Last Sent Coordinates</h2>
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm">
+              <div className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
                 <span className="font-semibold text-gray-600">Latitude:</span> 
                 <span className="font-mono text-indigo-600 text-base">{coords.latitude.toFixed(6)}</span>
               </div>
@@ -172,7 +192,7 @@ export default function Home() {
         )}
 
 
-        {/* Global Calculation Data Display */}
+        {/* Global Calculation Data Display and Map Link */}
         <div className="mt-6 border-t pt-6">
             <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">Global Average Data</h2>
             
@@ -201,29 +221,43 @@ export default function Home() {
                                 {data.average_longitude !== null ? data.average_longitude.toFixed(6) : "N/A"}
                             </span>
                         </div>
-                        <a 
-                            href={generateMapLink(data.average_latitude!, data.average_longitude!)} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="mt-6 block text-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 shadow-md"
-                        >
-                            🌍 View Average Location on Map
-                        </a>
                     </div>
+
+                    {/* MAP EMBED START */}
+                    {hasAverages && data.count > 0 && (
+                        <div className="mt-6">
+                            <h3 className="text-lg font-bold mb-2 text-gray-700 text-center">Average Location Map</h3>
+                            <div className="rounded-lg overflow-hidden border-2 border-indigo-300 shadow-xl">
+                                <iframe
+                                    // Use the generated embed URL for the source
+                                    src={generateMapEmbedUrl(data.average_latitude!, data.average_longitude!)}
+                                    width="100%"
+                                    height="300"
+                                    style={{ border: 0 }}
+                                    allowFullScreen={false}
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    title="Average Location Map"
+                                ></iframe>
+                            </div>
+                            <a 
+                                // Provide a direct link for users who need a larger map
+                                href={generateMapEmbedUrl(data.average_latitude!, data.average_longitude!).replace('output=embed', 'output=sitemap')} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="mt-3 block text-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition duration-150"
+                            >
+                                Open Map in New Tab
+                            </a>
+                        </div>
+                    )}
+                    {/* MAP EMBED END */}
+                    
+                    {data.count === 0 && (
+                        <p className="mt-4 text-center text-sm text-gray-500">Submit a location to view the average on a map.</p>
+                    )}
                 </div>
             )}
-            {data  &&  (
-                        <a 
-                            href={generateMapLink(data.average_latitude!, data.average_longitude!)} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="mt-6 block text-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 shadow-md"
-                        >
-                            🌍 View Average Location on Map
-                        </a>
-                    )}
-                    {/* --- NEW CODE ADDITION END --- */}
-                    
         </div>
       </div>
     </main>
