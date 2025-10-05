@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { fetchItems, addCurrentLocation, clearItems } from '@/lib/api';
 
 export default function Home() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<Array<{latitude: number; longitude: number; id: number}>>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -27,8 +27,8 @@ export default function Home() {
       const result = await addCurrentLocation();
       setMessage(`Location added! Lat: ${result.item.latitude}, Lon: ${result.item.longitude}`);
       loadItems();
-    } catch (error: any) {
-      setMessage(error.message || 'Failed to get location');
+    } catch (error: unknown) {
+      setMessage(error instanceof Error ? error.message : 'Failed to get location');
     }
     setLoading(false);
   };
