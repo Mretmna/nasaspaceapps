@@ -140,22 +140,25 @@ export default function Home() {
   };
 
   const hasAverages = data && data.average_latitude !== null && data.average_longitude !== null;
+  const hasCoords = coords !== null;
 
 
   return (
     <main className="relative min-h-screen flex items-center justify-center">
 
-      <div className="absolute inset-0">
-        <iframe
-          src={generateMapEmbedUrl(coords?.latitude!, coords?.longitude!)}
-          className="w-full h-full" 
-          style={{ border: 0 }}
-          allowFullScreen={true}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="Location Map"
-        />
-      </div>
+      {hasCoords && (
+        <div className="absolute inset-0">
+          <iframe
+            src={generateMapEmbedUrl(coords.latitude, coords.longitude)}
+            className="w-full h-full"
+            style={{ border: 0 }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Location Map"
+          />
+        </div>
+      )}
 
       <div className="relative z-10 p">
         <p className ="text-center text-9xl">deneme</p>
