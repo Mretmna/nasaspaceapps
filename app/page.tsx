@@ -123,7 +123,6 @@ export default function Home() {
           await response.json(); 
           setMessage("✅ Location sent successfully! Fetching new averages...");
 
-          // 3. IMPORTANT: Fetch updated calculations after a successful submission
           await fetchCalculations();
 
         } catch (e) {
@@ -140,126 +139,30 @@ export default function Home() {
     );
   };
 
-  // Derive state to check if we have valid averages to display the map link
   const hasAverages = data && data.average_latitude !== null && data.average_longitude !== null;
 
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
-      <div className="bg-white shadow-2xl rounded-xl p-8 max-w-lg w-full transform transition-all duration-300 hover:shadow-3xl">
-        <h1 className="text-3xl font-extrabold mb-6 text-center text-gray-800 border-b pb-3">
-          Global Coordinate Tracker
-        </h1>
+    <main className="relative min-h-screen flex items-center justify-center">
 
-        <button
-          onClick={getAndSendLocation}
-          disabled={loading}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl text-lg disabled:opacity-50 transition duration-150 shadow-md hover:shadow-lg mb-6"
-        >
-          {loading ? "⏳ Processing..." : "📍 Get & Send Location"}
-        </button>
-
-        {/* User's Last Sent Location */}
-        {coords && (
-          <div className="mb-6 p-6 bg-indigo-50 border-2 border-indigo-300 rounded-xl">
-            <h2 className="font-bold text-xl mb-3 text-center text-indigo-800">Your Last Sent Coordinates</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                <span className="font-semibold text-gray-600">Latitude:</span> 
-                <span className="font-mono text-indigo-600 text-base">{coords.latitude.toFixed(6)}</span>
-              </div>
-              <div className="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm">
-                <span className="font-semibold text-gray-600">Longitude:</span> 
-                <span className="font-mono text-indigo-600 text-base">{coords.longitude.toFixed(6)}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Status Message */}
-        {message && (
-          <div className={`mt-4 p-4 rounded-lg text-center font-medium ${message.startsWith('❌') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-            <p className="text-base">{message}</p>
-          </div>
-        )}
-
-        {/* Initial Load Error Display */}
-        {initialLoadError && (
-          <div className="mt-4 p-4 bg-red-100 rounded-lg text-center font-medium text-red-700">
-            <h2 className="font-bold">Initialization Error</h2>
-            <p className="text-sm">{initialLoadError}</p>
-          </div>
-        )}
-
-
-        {/* Global Calculation Data Display and Map Link */}
-        <div className="mt-6 border-t pt-6">
-            <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">Global Average Data</h2>
-            
-            {!data && !initialLoadError && (
-                <div className="p-4 bg-yellow-100 text-yellow-700 rounded-lg text-center">
-                    <p>Fetching global data...</p>
-                </div>
-            )}
-
-            {data && (
-                <div className="p-6 bg-gray-50 border border-gray-200 rounded-xl shadow-inner">
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                            <span className="font-semibold text-gray-600">Total Submissions:</span> 
-                            <span className="font-extrabold text-2xl text-indigo-600">{data.count}</span>
-                        </div>
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                            <span className="font-semibold text-gray-600">Avg. Latitude:</span> 
-                            <span className="font-mono text-gray-800">
-                                {data.average_latitude !== null ? data.average_latitude.toFixed(6) : "N/A"}
-                            </span>
-                        </div>
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                            <span className="font-semibold text-gray-600">Avg. Longitude:</span> 
-                            <span className="font-mono text-gray-800">
-                                {data.average_longitude !== null ? data.average_longitude.toFixed(6) : "N/A"}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* MAP EMBED START */}
-                    {hasAverages && data.count > 0 && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-bold mb-2 text-gray-700 text-center">Average Location Map</h3>
-                            <div className="rounded-lg overflow-hidden border-2 border-indigo-300 shadow-xl">
-                                <iframe
-                                    // Use the generated embed URL for the source
-                                    src={generateMapEmbedUrl(data.average_latitude!, data.average_longitude!)}
-                                    width="100%"
-                                    height="300"
-                                    style={{ border: 0 }}
-                                    allowFullScreen={false}
-                                    loading="lazy"
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    title="Average Location Map"
-                                ></iframe>
-                            </div>
-                            <a 
-                                // Provide a direct link for users who need a larger map
-                                href={generateMapEmbedUrl(data.average_latitude!, data.average_longitude!).replace('output=embed', 'output=sitemap')} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="mt-3 block text-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition duration-150"
-                            >
-                                Open Map in New Tab
-                            </a>
-                        </div>
-                    )}
-                    {/* MAP EMBED END */}
-                    
-                    {data.count === 0 && (
-                        <p className="mt-4 text-center text-sm text-gray-500">Submit a location to view the average on a map.</p>
-                    )}
-                </div>
-            )}
-        </div>
+      <div className="absolute inset-0">
+        <iframe
+          src={generateMapEmbedUrl(coords?.latitude!, coords?.longitude!)}
+          className="w-full h-full" 
+          style={{ border: 0 }}
+          allowFullScreen={true}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title="Location Map"
+        />
       </div>
+
+      <div className="relative z-10 p">
+        <p className ="text-center text-9xl">deneme</p>
+      </div>
+
+
     </main>
+    
   );
 }
