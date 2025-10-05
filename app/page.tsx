@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
 export default function Home() {
   const [coords, setCoords] = useState<{latitude: number; longitude: number} | null>(null);
