@@ -5,27 +5,30 @@ import { useEffect, useState } from 'react';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
+// adjust to match your FastAPI response structure
+type CalculationResponse = {
+  result: number;  
+};
+
 export default function Home() {
-  const [coords, setCoords] = useState<{latitude: number; longitude: number} | null>(null);
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<CalculationResponse | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/calculations`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": process.env.NEXT_PUBLIC_API_KEY ?? ""
-            }
-          }
-        );
-        if (!res.ok) throw new Error("Failed to fetch");
-        const json = await res.json();
+        const res = await fetch(`${API_URL}/calculations`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY ?? '',
+          },
+        });
+        if (!res.ok) throw new Error('Failed to fetch');
+
+        const json: CalculationResponse = await res.json();
         setData(json);
       } catch (err) {
         console.error(err);
@@ -49,7 +52,7 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        
+
         // Display coordinates first
         setCoords({ latitude, longitude });
         setMessage('📍 Location received! Sending to server...');
@@ -60,14 +63,14 @@ export default function Home() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': API_KEY as string,  
+              'x-api-key': API_KEY ?? '',
             },
             body: JSON.stringify({ latitude, longitude }),
           });
 
           if (!response.ok) throw new Error('Failed to send location');
 
-          const data = await response.json();
+          await response.json();
           setMessage('✅ Location sent successfully!');
         } catch (error) {
           setMessage('❌ Failed to send location to server');
@@ -85,7 +88,7 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
         <h1 className="text-2xl font-bold mb-6 text-center">Send My Location</h1>
-        
+
         <button
           onClick={getAndSendLocation}
           disabled={loading}
@@ -113,11 +116,13 @@ export default function Home() {
             <p className="text-sm">{message}</p>
           </div>
         )}
+
+        {data && (
+          <div className="mt-4 p-4 bg-green-50 rounded-lg text-center">
+            <p className="text-sm">Calculation result: {data.result}</p>
+          </div>
+        )}
       </div>
     </main>
   );
 }
-
-function setData(json: any) {
-      throw new Error('Function not implemented.');
-    }
