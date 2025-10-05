@@ -11,6 +11,7 @@ const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 type CalculationResponse = {
   average_latitude: number | null;
   average_longitude: number | null;
+  aqi_data: number | null;
   count: number;
 };
 
@@ -161,7 +162,7 @@ export default function Home() {
       <div>
   
           <span className="font-mono text-gray-800 text-9xl">
-              {data.aqi_data ? `Current AQI: ${data.aqi_data.aqi} (${data.aqi_data.category})` : "AQI data not available"}
+              {data.aqi_data ? `Current AQI: ${data.aqi_data})` : "AQI data not available"}
           </span>
         
         </div>}
